@@ -1,75 +1,26 @@
-/* Core Layout */
-body {
-    overflow-x: hidden;
-    -webkit-font-smoothing: antialiased;
-}
+.view { display: none; min-height: 100vh; }
+.view.active { display: block; animation: slideUp 0.3s ease-out; }
 
-.view {
-    display: none;
-    min-height: 100vh;
-}
+.header-gradient { background: linear-gradient(135deg, #ea580c 0%, #f97316 100%); }
 
-.view.active {
-    display: block;
-    animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-}
+.glass { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
 
-/* Espacio inferior para que el Nav no tape el contenido */
-.content-view {
-    padding-bottom: 100px;
-}
+.content-view { padding-bottom: 100px; }
 
-/* Glassmorphism */
-.glass {
-    background: rgba(255, 255, 255, 0.92);
-    backdrop-filter: blur(15px);
-    border: 1px solid rgba(255, 255, 255, 0.4);
-}
-
-.header-gradient {
-    background: linear-gradient(135deg, #ea580c 0%, #f97316 100%);
-}
-
-/* Inputs */
 .input-field {
-    width: 100%;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    padding: 0.75rem 1rem;
-    border-radius: 1rem;
-    font-size: 0.875rem;
-    font-weight: 600;
-    outline: none;
-    transition: all 0.2s;
-}
-
-.input-field:focus {
-    background: white;
-    border-color: #f97316;
-    box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.1);
+    width: 100%; border-radius: 1rem; padding: 0.75rem 1rem;
+    font-size: 0.875rem; font-weight: 700; border: 1px solid #e2e8f0; outline: none;
 }
 
 .label-tiny {
-    display: block;
-    font-size: 10px;
-    font-weight: 800;
-    text-transform: uppercase;
-    color: #94a3b8;
-    margin-left: 4px;
-    margin-bottom: 4px;
+    display: block; font-size: 10px; font-weight: 900;
+    text-transform: uppercase; color: #94a3b8; margin-bottom: 4px; margin-left: 4px;
 }
 
-/* Navigation */
-.nav-item.active {
-    color: #ea580c;
-    transform: translateY(-5px);
-}
-
-.nav-item {
-    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
+.nav-item { color: #cbd5e1; transition: all 0.3s; padding: 10px; }
+.nav-item.active { color: #f97316; transform: translateY(-3px); }
 
 @keyframes slideUp {
-    from { opacity: 0; transform: translateY(20px); }
+    from { opacity: 0; transform: translateY(15px); }
     to { opacity: 1; transform: translateY(0); }
 }
