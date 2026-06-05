@@ -1,127 +1,136 @@
 const app = {
     state: {
-        totalKm: parseFloat(localStorage.getItem('totalKm')) || 0.0,
-        racha: parseInt(localStorage.getItem('racha')) || 0,
-        sessions: parseInt(localStorage.getItem('sessions')) || 0,
-        currentWorkout: JSON.parse(localStorage.getItem('currentWorkout')) || {
-            title: "8x400m en Z4", type: "Pasadas", bloques: 2, vueltas: 4, dist: 400, pace: "1:30", zone: "Z4", place: "Pista Central"
-        },
-        logs: JSON.parse(localStorage.getItem('logs')) || []
+        role: null,
+        totalKm: 145.8,
+        racha: 12,
+        currentWorkout: { title: "Pasadas Potencia 800m", type: "Pasadas", bloques: 3, vueltas: 4, dist: 800, pace: "2:10", zone: "Z4", place: "Pista Central" },
+        students: [],
+        logs: []
     },
 
     init() {
-        this.renderAll();
-        this.updateValidationKm();
+        this.generateData();
+        this.render();
+    },
+
+    generateData() {
+        // Alumnos (20)
+        const names = ["Ricardo G.", "Ana Ponce", "Luis Sosa", "Marta M.", "Santi Q.", "Elena F.", "Marcos T.", "Julia V.", "Beto D.", "Carla X.", "Diego R.", "Fede H.", "Gaby L.", "Hugo M.", "Iara S.", "Juan K.", "Lola P.", "Mati N.", "Nico W.", "Pau B."];
+        this.state.students = names.map(name => ({
+            name, km: (Math.random()*60 + 10).toFixed(1), progress: Math.floor(Math.random()*100), status: 'Validado'
+        }));
+        // Logs historial (15)
+        for(let i=0; i<15; i++) {
+            this.state.logs.push({ date: `${15-i}/05`, km: (Math.random()*10+5).toFixed(1), type: 'Pasadas' });
+        }
+    },
+
+    login(role) {
+        this.state.role = role;
+        // 1. Quitar cuadro de login
+        document.getElementById('view-login').classList.add('hidden');
+        document.getElementById('view-login').classList.remove('active');
+        
+        // 2. Mostrar Header
+        document.getElementById('app-header').classList.remove('hidden');
+        const userData = (role === 'athlete') ? 
+            {name: "Martín Pérez", role: "Deportista Elite", img: "https://i.pravatar.cc/150?u=athlete"} : 
+            {name: "Profe Sebastián", role: "Head Coach", img: "https://i.pravatar.cc/150?u=coach"};
+        
+        document.getElementById('header-user-name').innerText = userData.name;
+        document.getElementById('header-user-role').innerText = userData.role;
+        document.getElementById('header-user-img').src = userData.img;
+
+        // 3. Nav Inferior y Navegar
+        this.setupBottomNav(role);
+        this.navigateTo(role === 'athlete' ? 'view-athlete-home' : 'view-coach-plan');
+    },
+
+    logout() {
+        this.state.role = null;
+        document.getElementById('app-header').classList.add('hidden');
+        document.getElementById('bottom-nav').classList.add('hidden');
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        document.getElementById('view-login').classList.remove('hidden');
+        document.getElementById('view-login').classList.add('active');
+    },
+
+    setupBottomNav(role) {
+        const nav = document.getElementById('bottom-nav');
+        nav.classList.remove('hidden');
+        nav.classList.add('flex');
+        
+        if(role === 'athlete') {
+            nav.className = "fixed bottom-0 w-full bg-white/95 backdrop-blur-xl border-t flex justify-around py-4 z-50";
+            nav.innerHTML = `
+                <button onclick="app.navigateTo('view-athlete-home')" class="nav-item active" id="nav-view-athlete-home"><i class="fas fa-calendar-day"></i></button>
+                <button onclick="app.navigateTo('view-metrics')" class="nav-item" id="nav-view-metrics"><i class="fas fa-chart-line"></i></button>
+                <button onclick="app.navigateTo('view-community')" class="nav-item" id="nav-view-community"><i class="fas fa-users"></i></button>
+                <button onclick="app.navigateTo('view-profile')" class="nav-item" id="nav-view-profile"><i class="fas fa-id-card"></i></button>
+            `;
+        } else {
+            nav.className = "fixed bottom-0 w-full bg-slate-900 border-t border-slate-800 flex justify-around py-4 z-50 coach-nav";
+            nav.innerHTML = `
+                <button onclick="app.navigateTo('view-coach-plan')" class="nav-item active" id="nav-view-coach-plan"><i class="fas fa-pencil-alt"></i></button>
+                <button onclick="app.navigateTo('view-coach-students')" class="nav-item" id="nav-view-coach-students"><i class="fas fa-address-book"></i></button>
+            `;
+        }
     },
 
     navigateTo(viewId) {
         document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
         document.getElementById(viewId).classList.add('active');
-
-        const nav = document.getElementById('bottom-nav');
-        const isAppView = viewId.startsWith('view-athlete') || viewId === 'view-metrics' || viewId === 'view-community' || viewId === 'view-profile';
-        
-        nav.classList.toggle('hidden', !isAppView);
-        nav.classList.toggle('flex', isAppView);
-
         document.querySelectorAll('.nav-item').forEach(btn => {
             btn.classList.toggle('active', btn.id === `nav-${viewId}`);
         });
-
-        this.renderAll();
         window.scrollTo(0, 0);
+        this.render();
     },
 
-    updateValidationKm() {
+    render() {
         const w = this.state.currentWorkout;
-        const totalKm = ((w.bloques * w.vueltas * w.dist) / 1000).toFixed(2);
-        document.getElementById('input-km').value = totalKm;
-    },
+        // Workout Card
+        const card = document.getElementById('active-workout-card');
+        if(card) {
+            card.innerHTML = `
+                <div class="flex justify-between mb-2">
+                    <span class="bg-orange-100 text-orange-600 text-[10px] font-black px-2 py-1 rounded-md uppercase italic">${w.type}</span>
+                    <span class="text-[10px] font-bold text-slate-400 italic">${w.place}</span>
+                </div>
+                <h3 class="text-xl font-black text-slate-800">${w.title}</h3>
+                <p class="text-xs font-bold text-slate-500 mt-1">${w.bloques}x${w.vueltas}x${w.dist}m | Ritmo: ${w.pace} | ${w.zone}</p>
+            `;
+            document.getElementById('input-km').value = ((w.bloques * w.vueltas * w.dist)/1000).toFixed(2);
+        }
 
-    validateActivity() {
-        const km = parseFloat(document.getElementById('input-km').value);
-        const time = document.getElementById('input-time').value || "00:00:00";
-        const rpe = document.getElementById('input-rpe').value || "7";
-
-        this.state.totalKm += km;
-        this.state.sessions++;
-        this.state.racha++;
-        this.state.logs.unshift({ date: new Date().toLocaleDateString(), km, time, rpe, type: this.state.currentWorkout.type });
-
-        localStorage.setItem('totalKm', this.state.totalKm);
-        localStorage.setItem('sessions', this.state.sessions);
-        localStorage.setItem('racha', this.state.racha);
-        localStorage.setItem('logs', JSON.stringify(this.state.logs));
-
-        alert("¡Entrenamiento validado con éxito!");
-        this.navigateTo('view-metrics');
-    },
-
-    createWorkout() {
-        const newW = {
-            title: document.getElementById('coach-title').value,
-            type: document.getElementById('coach-type').value,
-            bloques: parseInt(document.getElementById('coach-bloques').value) || 1,
-            vueltas: parseInt(document.getElementById('coach-vueltas').value) || 1,
-            dist: parseInt(document.getElementById('coach-dist').value) || 0,
-            pace: document.getElementById('coach-pace').value,
-            zone: document.getElementById('coach-zone').value,
-            place: document.getElementById('coach-place').value
-        };
-        this.state.currentWorkout = newW;
-        localStorage.setItem('currentWorkout', JSON.stringify(newW));
-        alert("Nuevo plan publicado.");
-        this.renderAll();
-    },
-
-    renderAll() {
-        const w = this.state.currentWorkout;
-        
-        // Home Atleta
-        document.getElementById('stat-racha').innerText = `🔥 ${this.state.racha}`;
-        document.getElementById('active-workout-card').innerHTML = `
-            <div class="flex justify-between items-center mb-3">
-                <span class="bg-orange-100 text-orange-700 text-[10px] font-black px-3 py-1 rounded-full uppercase italic">${w.type}</span>
-                <span class="text-[10px] font-bold text-slate-400 uppercase"><i class="fas fa-map-marker-alt"></i> ${w.place}</span>
-            </div>
-            <h3 class="text-xl font-black">${w.title}</h3>
-            <p class="text-sm font-bold text-slate-500 mt-1">${w.bloques} x ${w.vueltas} x ${w.dist}mts a ${w.pace} (${w.zone})</p>
-        `;
-
-        // Métricas Atleta
-        document.getElementById('total-km-display').innerText = this.state.totalKm.toFixed(1);
-        document.getElementById('total-sessions-display').innerText = this.state.sessions;
-        document.getElementById('history-list').innerHTML = this.state.logs.map(log => `
-            <div class="bg-white p-4 rounded-2xl shadow-sm border-l-4 border-orange-500 flex justify-between items-center">
-                <div><p class="text-xs font-black">${log.type} (${log.date})</p><p class="text-[10px] text-slate-400 font-bold uppercase">RPE: ${log.rpe}</p></div>
-                <div class="text-right"><p class="font-black text-orange-600">${log.km} km</p><p class="text-[10px] font-bold">${log.time}</p></div>
-            </div>
-        `).join('') || '<p class="text-center text-slate-400 text-xs">Aún no hay actividades validadas.</p>';
-
-        // Ranking
-        document.getElementById('leaderboard').innerHTML = [
-            { name: "Corredor #77 (Anónimo)", km: 65, racha: 15 },
-            { name: "Martín Pérez (Tú)", km: this.state.totalKm, racha: this.state.racha },
-            { name: "Corredor #12 (Anónimo)", km: 42, racha: 4 }
-        ].sort((a, b) => b.km - a.km).map((r, i) => `
-            <div class="flex justify-between items-center p-5 ${r.name.includes('Tú') ? 'bg-orange-50' : ''}">
-                <div class="flex items-center gap-3"><span class="text-xs font-black text-slate-300">#${i+1}</span><div><p class="text-sm font-bold">${r.name}</p><p class="text-[9px] text-slate-400 font-bold uppercase">🔥 ${r.racha} Días</p></div></div>
-                <p class="font-black text-orange-600">${r.km.toFixed(1)} km</p>
+        // Listas (Leaderboard, Historial, Coach Alumnos) se inyectan aquí igual que antes...
+        const lb = document.getElementById('leaderboard-list');
+        if(lb) lb.innerHTML = this.state.students.map((s, i) => `
+            <div class="flex justify-between items-center p-5">
+                <div class="flex items-center gap-4"><span class="text-xs font-black text-slate-300 w-4">#${i+1}</span><div><p class="text-sm font-bold text-slate-700">${s.name}</p><p class="text-[9px] text-slate-400 font-bold uppercase italic">🔥 10 días</p></div></div>
+                <p class="font-black text-orange-600">${s.km}k</p>
             </div>
         `).join('');
 
-        // Seguimiento Coach
-        document.getElementById('coach-student-list').innerHTML = [
-            { name: "Martín Pérez", km: this.state.totalKm, status: "V", color: "green" },
-            { name: "Ana Gomez", km: 45, status: "P", color: "orange" },
-            { name: "Luis Sosa", km: 12, status: "A", color: "red" }
-        ].map(s => `
-            <div class="bg-white p-4 rounded-2xl shadow-sm border-l-4 border-${s.color}-500 flex justify-between items-center">
-                <div><p class="font-bold text-sm">${s.name}</p><p class="text-[10px] text-slate-400 font-bold">${s.km.toFixed(1)} km esta semana</p></div>
-                <div class="bg-${s.color}-100 text-${s.color}-600 w-8 h-8 rounded-full flex items-center justify-center font-black text-xs">${s.status}</div>
+        const hist = document.getElementById('history-list');
+        if(hist) hist.innerHTML = this.state.logs.map(log => `
+            <div class="bg-white p-4 rounded-2xl border-l-4 border-orange-500 flex justify-between shadow-sm">
+                <div><p class="text-[9px] font-black text-slate-400 uppercase italic">${log.date} • ${log.type}</p><p class="text-xs font-bold">Completado</p></div>
+                <p class="font-black text-orange-600">${log.km}k</p>
             </div>
         `).join('');
-    }
+
+        const cl = document.getElementById('coach-student-list');
+        if(cl) cl.innerHTML = this.state.students.map(s => `
+            <div class="bg-white p-5 rounded-[2rem] border border-slate-100 flex justify-between items-center">
+                <div class="flex-1"><p class="font-black text-sm text-slate-800">${s.name}</p><div class="w-full bg-slate-100 h-1.5 rounded-full mt-2"><div class="bg-blue-500 h-full" style="width: ${s.progress}%"></div></div></div>
+                <div class="ml-6 text-right"><p class="text-xs font-black">${s.km}k</p><p class="text-[8px] uppercase text-slate-400 italic">${s.status}</p></div>
+            </div>
+        `).join('');
+    },
+
+    validateActivity() { alert("Kms validados!"); this.navigateTo('view-metrics'); },
+    createWorkout() { alert("Plan publicado!"); this.navigateTo('view-coach-students'); }
 };
 
 window.onload = () => app.init();
