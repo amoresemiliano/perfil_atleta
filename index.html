@@ -470,6 +470,26 @@
       </div>
     </section>
 
+    <!-- ADMIN MODAL PORTAL -->
+    <div
+      id="admin-modal"
+      class="hidden fixed inset-0 z-[300] bg-slate-900/40 backdrop-blur-sm flex items-center justify-center px-4"
+    >
+      <div
+        class="bg-white w-full max-w-md rounded-[3rem] shadow-2xl p-6 relative max-h-[90vh] overflow-y-auto"
+      >
+        <button
+          id="btn-close-admin-modal"
+          class="absolute top-6 right-6 w-8 h-8 flex items-center justify-center bg-slate-100 rounded-full text-slate-400 hover:bg-red-50 hover:text-red-500 transition-colors"
+        >
+          <i class="fas fa-times"></i>
+        </button>
+        <div id="admin-modal-content">
+          <!-- Inyectado por JS -->
+        </div>
+      </div>
+    </div>
+
     <script type="module" src="js/main.js"></script>
   </body>
 </html>
