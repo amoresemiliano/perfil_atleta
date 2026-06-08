@@ -1,0 +1,17 @@
+# Archivos de entorno y credenciales
+.env
+
+# Archivos de sistema (macOS)
+.DS_Store
+*.swp
+
+# Dependencias (si usaras node.js en el futuro)
+node_modules/
+package-lock.json
+
+# Logs
+npm-debug.log
+yarn-error.log
+
+# Archivos de la base de datos (por seguridad no subir el dump original lleno si tiene info real)
+# database.sql (opcionalmente lo puedes ignorar, pero el actual es mock así que está bien)

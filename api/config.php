@@ -9,13 +9,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
     exit();
 }
 
-// Configuración Base de Datos
-$host = 'localhost'; // En bluehost suele ser localhost
-$db   = 'nombre_de_tu_base_de_datos'; // <-- CAMBIAR EN PRODUCCIÓN
-$user = 'usuario_de_la_bd'; // <-- CAMBIAR EN PRODUCCIÓN
-$pass = 'tu_contraseña'; // <-- CAMBIAR EN PRODUCCIÓN
-$charset = 'utf8mb4';
+// Leer variables del archivo .env que debe estar en la carpeta raíz
+$envPath = __DIR__ . '/../.env';
+if (file_exists($envPath)) {
+    $env = parse_ini_file($envPath);
+    $host = $env['DB_HOST'] ?? 'localhost';
+    $db   = $env['DB_NAME'] ?? '';
+    $user = $env['DB_USER'] ?? '';
+    $pass = $env['DB_PASS'] ?? '';
+} else {
+    // Fallback si no existe .env (ej. testing en memoria)
+    $host = 'localhost';
+    $db = '';
+    $user = '';
+    $pass = '';
+}
 
+$charset = 'utf8mb4';
 $dsn = "mysql:host=$host;dbname=$db;charset=$charset";
 $options = [
     PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
