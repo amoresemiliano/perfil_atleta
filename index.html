@@ -104,6 +104,29 @@
       </div>
     </section>
 
+    <!-- SELECT USER MODAL -->
+    <div
+      id="login-select-modal"
+      class="hidden fixed inset-0 z-[300] bg-slate-900/40 backdrop-blur-sm flex items-end justify-center sm:items-center px-4 pb-4"
+    >
+      <div
+        class="bg-white w-full max-w-md rounded-[3rem] shadow-2xl p-6 relative max-h-[70vh] overflow-hidden flex flex-col"
+      >
+        <button
+          id="btn-close-login-modal"
+          class="absolute top-6 right-6 w-8 h-8 flex items-center justify-center bg-slate-100 rounded-full text-slate-400 hover:bg-red-50 hover:text-red-500 transition-colors"
+        >
+          <i class="fas fa-times"></i>
+        </button>
+        <h3 id="login-modal-title" class="text-xl font-black italic mb-4">
+          Seleccionar Cuenta
+        </h3>
+        <div id="login-modal-list" class="space-y-3 overflow-y-auto pr-2 pb-6">
+          <!-- JS inyecta usuarios aquí -->
+        </div>
+      </div>
+    </div>
+
     <!-- VISTAS DE ALUMNO -->
 
     <!-- 1. HOME: PRÓXIMO PLAN Y AUTOCARGA -->

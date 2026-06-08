@@ -13,14 +13,10 @@ export function setupUI() {
   // Configurar eventos globales (botones de login/logout que no están en el DOM dinámico)
   document
     .getElementById("btn-login-athlete")
-    ?.addEventListener("click", () =>
-      import("./auth.js").then((m) => m.login("athlete")),
-    );
+    ?.addEventListener("click", () => openLoginModal("athlete"));
   document
     .getElementById("btn-login-coach")
-    ?.addEventListener("click", () =>
-      import("./auth.js").then((m) => m.login("coach")),
-    );
+    ?.addEventListener("click", () => openLoginModal("coach"));
   document
     .getElementById("btn-login-admin")
     ?.addEventListener("click", () =>
@@ -29,6 +25,54 @@ export function setupUI() {
   document
     .getElementById("btn-logout")
     ?.addEventListener("click", () => logout());
+
+  document
+    .getElementById("btn-close-login-modal")
+    ?.addEventListener("click", () => {
+      document.getElementById("login-select-modal").classList.add("hidden");
+    });
+}
+
+function openLoginModal(role) {
+  const modal = document.getElementById("login-select-modal");
+  const title = document.getElementById("login-modal-title");
+  const list = document.getElementById("login-modal-list");
+
+  if (!modal || !title || !list) return;
+
+  title.innerText =
+    role === "athlete" ? "Ingresar como Atleta" : "Ingresar como Entrenador";
+
+  const usersOfRole = state.users.filter((u) => u.role === role);
+
+  if (usersOfRole.length === 0) {
+    list.innerHTML = `<p class="text-center text-slate-400 text-sm mt-4">No hay perfiles registrados aún.</p>`;
+  } else {
+    list.innerHTML = usersOfRole
+      .map(
+        (u) => `
+            <button data-login-id="${u.id}" class="btn-login-specific w-full flex items-center gap-4 p-4 bg-slate-50 hover:bg-slate-100 rounded-2xl border border-slate-100 transition-colors text-left active:scale-95">
+                <img src="${u.img}" class="w-12 h-12 rounded-full border-2 border-white shadow-sm">
+                <div>
+                    <p class="font-black text-slate-800">${u.name}</p>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">${u.role_desc || (role === "athlete" ? "Deportista" : "Entrenador")}</p>
+                </div>
+            </button>
+        `,
+      )
+      .join("");
+
+    // Bind events
+    list.querySelectorAll(".btn-login-specific").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        const id = e.currentTarget.getAttribute("data-login-id");
+        modal.classList.add("hidden");
+        import("./auth.js").then((m) => m.loginById(id));
+      });
+    });
+  }
+
+  modal.classList.remove("hidden");
 }
 
 export function renderHeader() {

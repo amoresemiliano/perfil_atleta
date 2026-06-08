@@ -7,16 +7,21 @@ import { renderAdminDashboard } from "./admin.js";
 export function login(role, email = null) {
   let user = null;
 
+  // Admin siempre loguea directo por ahora
   if (role === "admin" || email === "vegendigital@gmail.com") {
     user = state.users.find((u) => u.role === "admin");
-  } else if (role === "athlete") {
-    user = state.users.find((u) => u.role === "athlete"); // Loguea el primero para MVP
-  } else if (role === "coach") {
-    user = state.users.find((u) => u.role === "coach"); // Loguea el primero para MVP
   }
 
   if (!user) return;
+  loginUserObj(user);
+}
 
+export function loginById(id) {
+  const user = state.users.find((u) => u.id === id);
+  if (user) loginUserObj(user);
+}
+
+function loginUserObj(user) {
   state.currentUser = user;
 
   // 1. Quitar cuadro de login
