@@ -81,8 +81,11 @@ function completeAssignedActivity(actId) {
         ((act.bloques * act.vueltas * act.dist) / 1000).toFixed(2),
       );
     }
-    alert("¡Entrenamiento marcado como completado!");
-    renderAthleteHome(); // Refrescar vista
+    import("./state.js").then(async ({ API }) => {
+      await API.updateActivityStatus(act);
+      alert("¡Entrenamiento marcado como completado!");
+      renderAthleteHome(); // Refrescar vista
+    });
   }
 }
 
@@ -97,7 +100,7 @@ function saveManualActivity() {
     return;
   }
 
-  state.activities.push({
+  const newManualAct = {
     id: `auto_${Date.now()}`,
     athleteId: state.currentUser.id,
     coachId: null, // Autogenerada
@@ -108,13 +111,17 @@ function saveManualActivity() {
     time: time,
     rpe: rpe,
     dateCompleted: new Date().toISOString(),
-  });
+  };
 
-  alert("¡Actividad guardada con éxito!");
-  // Limpiar form
-  document.getElementById("athlete-manual-km").value = "";
-  document.getElementById("athlete-manual-time").value = "";
-  document.getElementById("athlete-manual-rpe").value = "7";
+  import("./state.js").then(async ({ state, API }) => {
+    await API.saveActivity(newManualAct);
+    state.activities.push(newManualAct);
+    alert("¡Actividad guardada con éxito!");
+    // Limpiar form
+    document.getElementById("athlete-manual-km").value = "";
+    document.getElementById("athlete-manual-time").value = "";
+    document.getElementById("athlete-manual-rpe").value = "7";
+  });
 }
 
 export function renderMetrics() {

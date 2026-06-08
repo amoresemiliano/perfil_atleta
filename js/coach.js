@@ -55,7 +55,7 @@ function publishWorkout() {
     return;
   }
 
-  state.activities.push({
+  const newWorkout = {
     id: `assigned_${Date.now()}`,
     athleteId: athleteId,
     coachId: state.currentUser.id,
@@ -70,10 +70,14 @@ function publishWorkout() {
     zone: zone,
     place: place,
     dateAssigned: new Date().toISOString(),
-  });
+  };
 
-  alert("¡Entrenamiento publicado con éxito!");
-  navigateTo("view-coach-students");
+  import("./state.js").then(async ({ state, API }) => {
+    await API.saveActivity(newWorkout);
+    state.activities.push(newWorkout);
+    alert("¡Entrenamiento publicado con éxito!");
+    navigateTo("view-coach-students");
+  });
 }
 
 export function renderCoachStudents() {

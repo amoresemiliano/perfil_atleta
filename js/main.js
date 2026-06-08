@@ -1,13 +1,12 @@
-import { state, generateMockData } from './state.js';
-import { setupUI } from './ui.js';
-import { login } from './auth.js';
+import { loadInitialState } from "./state.js";
+import { setupUI } from "./ui.js";
 
-function init() {
-    generateMockData();
-    setupUI();
+async function init() {
+  // 1. Cargar datos de la Base de Datos primero
+  await loadInitialState();
 
-    // Si queremos auto-login para desarrollo, descomentar:
-    // login('admin');
+  // 2. Iniciar UI
+  setupUI();
 }
 
-window.addEventListener('DOMContentLoaded', init);
+window.addEventListener("DOMContentLoaded", init);

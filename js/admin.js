@@ -81,7 +81,7 @@ function openAdminModal(type) {
             <h3 class="text-xl font-black italic mb-4">Vínculos Sistema</h3>
             <div class="space-y-3 mb-6 max-h-60 overflow-y-auto pr-2">
                 ${state.connections
-                  .map((c, index) => {
+                  .map((c) => {
                     const coach = state.users.find((u) => u.id === c.coachId);
                     const athlete = state.users.find(
                       (u) => u.id === c.athleteId,
@@ -93,7 +93,7 @@ function openAdminModal(type) {
                             <i class="fas fa-arrow-right text-slate-300 mx-1"></i>
                             <span class="font-bold text-slate-700">${athlete?.name || "Desconocido"}</span>
                         </div>
-                        <button data-delete-conn="${index}" class="btn-delete-conn text-red-400 hover:text-red-600 text-xs"><i class="fas fa-unlink"></i></button>
+                        <button data-delete-conn="${c.id}" class="btn-delete-conn text-red-400 hover:text-red-600 text-xs"><i class="fas fa-unlink"></i></button>
                     </div>
                     `;
                   })
@@ -149,33 +149,37 @@ function openAdminModal(type) {
 function bindModalEvents(type) {
   if (type === "users") {
     // Add User
-    document.getElementById("btn-add-user")?.addEventListener("click", () => {
-      const nameInput = document.getElementById("new-user-name");
-      const roleInput = document.getElementById("new-user-role");
-      if (!nameInput.value.trim()) return alert("El nombre es requerido.");
+    document
+      .getElementById("btn-add-user")
+      ?.addEventListener("click", async () => {
+        const nameInput = document.getElementById("new-user-name");
+        const roleInput = document.getElementById("new-user-role");
+        if (!nameInput.value.trim()) return alert("El nombre es requerido.");
 
-      const newId = `${roleInput.value}_${Date.now()}`;
-      state.users.push({
-        id: newId,
-        role: roleInput.value,
-        email: `${newId}@test.com`,
-        name: nameInput.value.trim(),
-        roleDesc: roleInput.value === "coach" ? "Entrenador" : "Deportista",
-        img: `https://i.pravatar.cc/150?u=${newId}`,
+        const newId = `${roleInput.value}_${Date.now()}`;
+        const newUser = {
+          id: newId,
+          role: roleInput.value,
+          email: `${newId}@test.com`,
+          name: nameInput.value.trim(),
+          role_desc: roleInput.value === "coach" ? "Entrenador" : "Deportista",
+          img: `https://i.pravatar.cc/150?u=${newId}`,
+        };
+
+        await API.addUser(newUser);
+        state.users.push(newUser);
+        refreshAdminUI(type);
       });
-      refreshAdminUI(type);
-    });
 
     // Delete User
     document.querySelectorAll(".btn-delete-user").forEach((btn) => {
-      btn.addEventListener("click", (e) => {
+      btn.addEventListener("click", async (e) => {
         const userId = e.currentTarget.getAttribute("data-delete-user");
-        // Prevenir borrar super admin
         if (state.users.find((u) => u.id === userId)?.role === "admin")
           return alert("No puedes borrar al admin.");
 
+        await API.deleteUser(userId);
         state.users = state.users.filter((u) => u.id !== userId);
-        // Limpiar conexiones asociadas
         state.connections = state.connections.filter(
           (c) => c.coachId !== userId && c.athleteId !== userId,
         );
@@ -184,45 +188,51 @@ function bindModalEvents(type) {
     });
   } else if (type === "connections") {
     // Add Connection
-    document.getElementById("btn-add-conn")?.addEventListener("click", () => {
-      const coachId = document.getElementById("new-conn-coach").value;
-      const athleteId = document.getElementById("new-conn-athlete").value;
-      if (!coachId || !athleteId) return alert("Selecciona profe y atleta.");
+    document
+      .getElementById("btn-add-conn")
+      ?.addEventListener("click", async () => {
+        const coachId = document.getElementById("new-conn-coach").value;
+        const athleteId = document.getElementById("new-conn-athlete").value;
+        if (!coachId || !athleteId) return alert("Selecciona profe y atleta.");
 
-      // Prevenir duplicados
-      const exists = state.connections.find(
-        (c) => c.coachId === coachId && c.athleteId === athleteId,
-      );
-      if (exists) return alert("Ese vínculo ya existe.");
+        const exists = state.connections.find(
+          (c) => c.coachId === coachId && c.athleteId === athleteId,
+        );
+        if (exists) return alert("Ese vínculo ya existe.");
 
-      state.connections.push({ coachId, athleteId });
-      refreshAdminUI(type);
-    });
+        const res = await API.addConnection(coachId, athleteId);
+        state.connections.push({ id: res.id, coachId, athleteId });
+        refreshAdminUI(type);
+      });
 
     // Delete Connection
     document.querySelectorAll(".btn-delete-conn").forEach((btn) => {
-      btn.addEventListener("click", (e) => {
-        const index = parseInt(
-          e.currentTarget.getAttribute("data-delete-conn"),
-        );
-        state.connections.splice(index, 1);
+      btn.addEventListener("click", async (e) => {
+        const connId = e.currentTarget.getAttribute("data-delete-conn");
+        await API.deleteConnection(connId);
+        state.connections = state.connections.filter((c) => c.id != connId);
         refreshAdminUI(type);
       });
     });
   } else if (type === "sports") {
     // Add Sport
-    document.getElementById("btn-add-sport")?.addEventListener("click", () => {
-      const nameInput = document.getElementById("new-sport-name");
-      const val = nameInput.value.trim();
-      if (!val) return alert("Ingresa un nombre.");
+    document
+      .getElementById("btn-add-sport")
+      ?.addEventListener("click", async () => {
+        const nameInput = document.getElementById("new-sport-name");
+        const val = nameInput.value.trim();
+        if (!val) return alert("Ingresa un nombre.");
 
-      state.sports.push({
-        id: `sport_${Date.now()}`,
-        name: val,
-        icon: "fa-trophy", // Icono por defecto
+        const newSport = {
+          id: `sport_${Date.now()}`,
+          name: val,
+          icon: "fa-trophy",
+        };
+
+        await API.addSport(newSport);
+        state.sports.push(newSport);
+        refreshAdminUI(type);
       });
-      refreshAdminUI(type);
-    });
   }
 }
 
