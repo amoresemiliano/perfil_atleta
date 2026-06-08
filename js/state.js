@@ -1,5 +1,6 @@
 // API Base URL (Para desarrollo local usar ruta relativa, para prod la URL real)
 const API_URL = "./api";
+let isMockMode = false;
 
 export const state = {
   currentUser: null,
@@ -19,6 +20,8 @@ export async function loadInitialState() {
       fetch(`${API_URL}/activities.php`),
     ]);
 
+    if (!usersRes.ok) throw new Error("Network response was not ok");
+
     state.users = await usersRes.json();
     state.sports = await sportsRes.json();
 
@@ -31,64 +34,73 @@ export async function loadInitialState() {
     }));
 
     state.activities = await actRes.json();
-
+    isMockMode = false;
     return true;
   } catch (error) {
-    console.error("Error al conectar con la base de datos:", error);
-    // Fallback a los datos MOCK si falla la BD (útil mientras no subas la BD a BlueHost)
+    console.error("Error al conectar con la BD. Activando MOCK MODE:", error);
+    isMockMode = true;
     generateMockData();
     return false;
+  }
+}
+
+// Wrapper para llamadas seguras a la BD
+async function safeFetch(url, options = {}) {
+  if (isMockMode) {
+    // Si estamos en mock mode, simulamos éxito y no llamamos a PHP
+    return { status: "success_mock", id: Date.now() };
+  }
+  try {
+    const res = await fetch(url, options);
+    return await res.json();
+  } catch (error) {
+    console.error(`API Error en ${url}:`, error);
+    // Para que la UI no se rompa si falla la llamada
+    return { error: true, message: error.message };
   }
 }
 
 // APIs Helper Functions para CRUD
 export const API = {
   async addUser(userObj) {
-    const res = await fetch(`${API_URL}/users.php`, {
+    return safeFetch(`${API_URL}/users.php`, {
       method: "POST",
       body: JSON.stringify(userObj),
     });
-    return res.json();
   },
   async deleteUser(id) {
-    const res = await fetch(`${API_URL}/users.php?id=${id}`, {
+    return safeFetch(`${API_URL}/users.php?id=${id}`, {
       method: "DELETE",
     });
-    return res.json();
   },
   async addConnection(coachId, athleteId) {
-    const res = await fetch(`${API_URL}/connections.php`, {
+    return safeFetch(`${API_URL}/connections.php`, {
       method: "POST",
       body: JSON.stringify({ coachId, athleteId }),
     });
-    return res.json();
   },
   async deleteConnection(id) {
-    const res = await fetch(`${API_URL}/connections.php?id=${id}`, {
+    return safeFetch(`${API_URL}/connections.php?id=${id}`, {
       method: "DELETE",
     });
-    return res.json();
   },
   async addSport(sportObj) {
-    const res = await fetch(`${API_URL}/sports.php`, {
+    return safeFetch(`${API_URL}/sports.php`, {
       method: "POST",
       body: JSON.stringify(sportObj),
     });
-    return res.json();
   },
   async saveActivity(actObj) {
-    const res = await fetch(`${API_URL}/activities.php`, {
+    return safeFetch(`${API_URL}/activities.php`, {
       method: "POST",
       body: JSON.stringify(actObj),
     });
-    return res.json();
   },
   async updateActivityStatus(actObj) {
-    const res = await fetch(`${API_URL}/activities.php`, {
+    return safeFetch(`${API_URL}/activities.php`, {
       method: "PUT",
       body: JSON.stringify(actObj),
     });
-    return res.json();
   },
 };
 
