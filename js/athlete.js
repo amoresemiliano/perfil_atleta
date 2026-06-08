@@ -89,14 +89,61 @@ function completeAssignedActivity(actId) {
   }
 }
 
+// Función Helper para parsear cualquier formato de tiempo a HH:MM:SS
+function parseTimeToStandard(inputStr) {
+  inputStr = inputStr
+    .trim()
+    .replace(/hs/gi, "")
+    .replace(/m/gi, "")
+    .replace(/s/gi, "");
+
+  // Si contiene dos puntos (ej. 1:15 o 01:10:00)
+  if (inputStr.includes(":")) {
+    const parts = inputStr.split(":");
+    if (parts.length === 2) {
+      // Se asume MM:SS
+      const m = parseInt(parts[0]) || 0;
+      const s = parseInt(parts[1]) || 0;
+      const h = Math.floor(m / 60);
+      const rm = m % 60;
+      return `${h.toString().padStart(2, "0")}:${rm.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+    } else if (parts.length === 3) {
+      // Se asume HH:MM:SS
+      const h = parseInt(parts[0]) || 0;
+      const m = parseInt(parts[1]) || 0;
+      const s = parseInt(parts[2]) || 0;
+      return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+    }
+  }
+
+  // Si es solo un número (ej. 45 o 90) se asume que son Minutos Totales
+  if (!isNaN(inputStr) && inputStr !== "") {
+    const totalMinutes = parseFloat(inputStr);
+    const h = Math.floor(totalMinutes / 60);
+    const m = Math.floor(totalMinutes % 60);
+    const s = Math.round((totalMinutes - Math.floor(totalMinutes)) * 60);
+    return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+  }
+
+  return null; // Formato inválido
+}
+
 function saveManualActivity() {
   const sport = document.getElementById("athlete-manual-sport").value;
   const km = parseFloat(document.getElementById("athlete-manual-km").value);
-  const time = document.getElementById("athlete-manual-time").value;
+  const rawTime = document.getElementById("athlete-manual-time").value;
   const rpe = document.getElementById("athlete-manual-rpe").value;
 
-  if (!km || !time) {
+  if (!km || !rawTime) {
     alert("Por favor, ingresa distancia y tiempo.");
+    return;
+  }
+
+  const standardTime = parseTimeToStandard(rawTime);
+  if (!standardTime) {
+    alert(
+      "Formato de tiempo no válido. Usa minutos (ej: 45) o HH:MM:SS (ej: 01:10:00).",
+    );
     return;
   }
 
@@ -108,7 +155,7 @@ function saveManualActivity() {
     sport: sport,
     title: "Actividad Manual",
     distance: km,
-    time: time,
+    time: standardTime,
     rpe: rpe,
     dateCompleted: new Date().toISOString(),
   };

@@ -38,6 +38,7 @@ export async function loadInitialState() {
     return true;
   } catch (error) {
     console.error("Error al conectar con la BD. Activando MOCK MODE:", error);
+    alert("ADVERTENCIA DE BASE DE DATOS: No se pudo conectar al servidor PHP/MySQL. \n\nLa aplicación está funcionando en MODO DE PRUEBA (Memoria Local). Los cambios que hagas se perderán al recargar la página.\n\nPor favor, verifica tus credenciales en el archivo .env de BlueHost.");
     isMockMode = true;
     generateMockData();
     return false;

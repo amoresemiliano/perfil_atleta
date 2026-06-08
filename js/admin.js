@@ -134,10 +134,17 @@ function openAdminModal(type) {
             </div>
             <div class="bg-slate-50 p-4 rounded-3xl border border-slate-100">
                 <h4 class="text-xs font-black italic text-green-600 mb-3">Agregar Deporte</h4>
-                <div class="flex gap-2">
-                    <input id="new-sport-name" type="text" placeholder="Ej: Natación" class="flex-1 p-3 text-xs rounded-xl bg-white border border-slate-200 outline-none">
-                    <button id="btn-add-sport" class="bg-green-500 px-4 text-white rounded-xl hover:bg-green-600 active:scale-95 transition-all"><i class="fas fa-plus"></i></button>
-                </div>
+                <input id="new-sport-name" type="text" placeholder="Ej: Natación" class="w-full mb-2 p-3 text-xs rounded-xl bg-white border border-slate-200 outline-none">
+                <select id="new-sport-icon" class="w-full mb-3 p-3 text-xs rounded-xl bg-white border border-slate-200 outline-none">
+                    <option value="fa-running">Correr (Running)</option>
+                    <option value="fa-swimmer">Natación</option>
+                    <option value="fa-dumbbell">Pesas / Gym</option>
+                    <option value="fa-biking">Ciclismo</option>
+                    <option value="fa-table-tennis">Pádel / Tenis</option>
+                    <option value="fa-futbol">Fútbol</option>
+                    <option value="fa-trophy">General (Copa)</option>
+                </select>
+                <button id="btn-add-sport" class="w-full bg-green-500 text-white text-xs font-black uppercase tracking-widest py-3 rounded-xl hover:bg-green-600 active:scale-95 transition-all">Guardar Deporte</button>
             </div>
         `;
   }
@@ -220,13 +227,14 @@ function bindModalEvents(type) {
       .getElementById("btn-add-sport")
       ?.addEventListener("click", async () => {
         const nameInput = document.getElementById("new-sport-name");
+        const iconSelect = document.getElementById("new-sport-icon");
         const val = nameInput.value.trim();
-        if (!val) return alert("Ingresa un nombre.");
+        if (!val) return alert("Ingresa el nombre del deporte.");
 
         const newSport = {
           id: `sport_${Date.now()}`,
           name: val,
-          icon: "fa-trophy",
+          icon: iconSelect.value,
         };
 
         await API.addSport(newSport);
